@@ -5,7 +5,6 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.content.res.ColorStateList
 import android.os.Build
 import android.os.Bundle
 import android.view.View
@@ -14,13 +13,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import cl.inacap.riegoiot.databinding.ActivityMonitoreoBinding
 import com.google.android.material.snackbar.Snackbar
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.launch
 
 class MonitoreoActivity : AppCompatActivity() {
 
@@ -42,19 +36,18 @@ class MonitoreoActivity : AppCompatActivity() {
         binding = ActivityMonitoreoBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        username = intent.getStringExtra(EXTRA_USERNAME) ?: MqttManager.currentUsername
+        username = intent.getStringExtra(EXTRA_USERNAME).orEmpty()
         userRole = UserRoleManager.getRole(username)
 
         setupToolbar()
         setupAdminButton()
         setupNotifications()
-        observeState()
+        // Fase 5: datos de estacion/riego01 desde Firestore
     }
 
     private fun setupToolbar() {
         binding.toolbarMonitoreo.setOnMenuItemClickListener { menuItem ->
             if (menuItem.itemId == R.id.action_logout) {
-                MqttManager.disconnect()
                 val intent = Intent(this, LoginActivity::class.java)
                 intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                 startActivity(intent)
@@ -115,50 +108,6 @@ class MonitoreoActivity : AppCompatActivity() {
         }
     }
 
-    private fun observeState() {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch {
-                    combine(MqttManager.humidity, MqttManager.threshold) { hum, thresh ->
-                        Pair(hum, thresh)
-                    }.collect { (hum, thresh) ->
-                        updateHumidityUI(hum, thresh)
-                    }
-                }
-
-                launch {
-                    MqttManager.connectionType.collect { connType ->
-                        updateConnectionChip(connType)
-                    }
-                }
-
-                launch {
-                    MqttManager.deviceState.collect { devState ->
-                        updateDeviceStateChip(devState)
-                    }
-                }
-
-                launch {
-                    MqttManager.pumpState.collect { pState ->
-                        updatePumpStatus(pState)
-                    }
-                }
-
-                launch {
-                    MqttManager.lastUpdate.collect { lastUp ->
-                        binding.tvLastUpdate.text = getString(R.string.last_update_prefix, lastUp)
-                    }
-                }
-
-                launch {
-                    MqttManager.alerts.collect { alert ->
-                        if (alert == "SECO") showDryAlert()
-                    }
-                }
-            }
-        }
-    }
-
     private fun updateHumidityUI(humidity: Int, threshold: Int) {
         binding.progressHumidity.progress = humidity
         binding.tvHumidityValue.text = getString(R.string.humidity_unit, humidity)
@@ -169,51 +118,5 @@ class MonitoreoActivity : AppCompatActivity() {
             else -> getString(R.string.plant_status_optima)
         }
         binding.tvPlantStatus.text = "${getString(R.string.plant_status_prefix)}$statusText"
-    }
-
-    private fun updateConnectionChip(type: ConnectionType) {
-        when (type) {
-            ConnectionType.WIFI_MQTT -> {
-                binding.chipConnection.text = getString(R.string.conn_mqtt)
-                binding.chipConnection.chipBackgroundColor = ColorStateList.valueOf(
-                    ContextCompat.getColor(this, R.color.status_mqtt)
-                )
-                binding.chipConnection.setTextColor(ContextCompat.getColor(this, R.color.white))
-            }
-            ConnectionType.DISCONNECTED -> {
-                binding.chipConnection.text = getString(R.string.conn_none)
-                binding.chipConnection.chipBackgroundColor = ColorStateList.valueOf(
-                    ContextCompat.getColor(this, R.color.status_disconnected)
-                )
-                binding.chipConnection.setTextColor(ContextCompat.getColor(this, R.color.white))
-            }
-        }
-    }
-
-    private fun updateDeviceStateChip(state: DeviceState) {
-        when (state) {
-            DeviceState.ONLINE -> {
-                binding.chipDeviceStatus.text = getString(R.string.device_online)
-                binding.chipDeviceStatus.chipBackgroundColor = ColorStateList.valueOf(
-                    ContextCompat.getColor(this, R.color.status_online)
-                )
-                binding.chipDeviceStatus.setTextColor(ContextCompat.getColor(this, R.color.white))
-            }
-            DeviceState.OFFLINE -> {
-                binding.chipDeviceStatus.text = getString(R.string.device_offline)
-                binding.chipDeviceStatus.chipBackgroundColor = ColorStateList.valueOf(
-                    ContextCompat.getColor(this, R.color.status_offline)
-                )
-                binding.chipDeviceStatus.setTextColor(ContextCompat.getColor(this, R.color.white))
-            }
-        }
-    }
-
-    private fun updatePumpStatus(state: PumpState) {
-        val statusStr = when (state) {
-            PumpState.REGANDO -> getString(R.string.pump_status_on)
-            PumpState.DETENIDA -> getString(R.string.pump_status_off)
-        }
-        binding.tvPumpStatus.text = "${getString(R.string.pump_status_prefix)}$statusStr"
     }
 }

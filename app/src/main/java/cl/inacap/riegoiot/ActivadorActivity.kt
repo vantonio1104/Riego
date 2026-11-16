@@ -2,14 +2,10 @@ package cl.inacap.riegoiot
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import cl.inacap.riegoiot.databinding.ActivityActivadorBinding
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
-import kotlinx.coroutines.launch
 
 class ActivadorActivity : AppCompatActivity() {
 
@@ -26,34 +22,19 @@ class ActivadorActivity : AppCompatActivity() {
         binding = ActivityActivadorBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        username = intent.getStringExtra(EXTRA_USERNAME) ?: MqttManager.currentUsername
+        username = intent.getStringExtra(EXTRA_USERNAME).orEmpty()
 
         setupToolbar()
-        loadCurrentConfig()
         setupPlantProfiles()
         setupSlider()
         setupHistoryRecyclerView()
         setupSaveButton()
         setupWaterNowButton()
-        observeRemoteThreshold()
     }
 
     private fun setupToolbar() {
         binding.toolbarActivador.setNavigationOnClickListener {
             finish()
-        }
-    }
-
-    private fun loadCurrentConfig() {
-        val current = snapToStep(MqttManager.threshold.value)
-        binding.sliderThreshold.value = current.toFloat()
-        updateThresholdTitle(current)
-        binding.etDuration.setText(MqttManager.durationSeconds.value.toString())
-        binding.switchAutoMode.isChecked = MqttManager.autoMode.value
-        when (current) {
-            20 -> binding.rbSucculent.isChecked = true
-            30 -> binding.rbNormal.isChecked = true
-            60 -> binding.rbTropical.isChecked = true
         }
     }
 
@@ -118,17 +99,8 @@ class ActivadorActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            if (!MqttManager.publishConfig(threshold, duration, isAutoMode)) {
-                Snackbar.make(binding.root, getString(R.string.send_error), Snackbar.LENGTH_LONG).show()
-                return@setOnClickListener
-            }
-
-            val modeStr = if (isAutoMode) "AUTO" else "MANUAL"
-            val actionText = getString(R.string.action_config_saved, threshold, duration, modeStr)
-            ActionLogger.logAction(this, username, actionText, "MQTT")
-
-            Snackbar.make(binding.root, getString(R.string.config_saved_success), Snackbar.LENGTH_SHORT).show()
-            refreshHistory()
+            // Fase 5: crear doc en comandos y acciones
+            Snackbar.make(binding.root, getString(R.string.send_error), Snackbar.LENGTH_LONG).show()
         }
     }
 
@@ -139,35 +111,13 @@ class ActivadorActivity : AppCompatActivity() {
                 .setMessage(R.string.water_dialog_msg)
                 .setPositiveButton(R.string.confirm) { dialog, _ ->
                     dialog.dismiss()
-                    if (!MqttManager.publishManualWatering(username)) {
-                        Snackbar.make(binding.root, getString(R.string.send_error), Snackbar.LENGTH_LONG).show()
-                        return@setPositiveButton
-                    }
-
-                    val actionText = getString(R.string.action_manual_water)
-                    ActionLogger.logAction(this, username, actionText, "MQTT")
-
-                    Snackbar.make(binding.root, getString(R.string.water_requested_success), Snackbar.LENGTH_SHORT).show()
-                    refreshHistory()
+                    // Fase 5: crear doc en comandos y acciones
+                    Snackbar.make(binding.root, getString(R.string.send_error), Snackbar.LENGTH_LONG).show()
                 }
                 .setNegativeButton(R.string.cancel) { dialog, _ ->
                     dialog.dismiss()
                 }
                 .show()
-        }
-    }
-
-    private fun observeRemoteThreshold() {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                MqttManager.threshold.collect { remoteThreshold ->
-                    val snapped = snapToStep(remoteThreshold)
-                    if (binding.sliderThreshold.value.toInt() != snapped) {
-                        binding.sliderThreshold.value = snapped.toFloat()
-                        updateThresholdTitle(snapped)
-                    }
-                }
-            }
         }
     }
 }

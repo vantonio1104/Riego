@@ -10,6 +10,7 @@
     <string name="btn_login">Ingresar</string>
     <string name="login_empty_error">Este campo es obligatorio</string>
     <string name="login_failed">Error al iniciar sesión: %s</string>
+    <string name="login_pendiente">Inicio de sesión con Firebase pendiente (Fase 2)</string>
     <string name="login_blocked">Bloqueado por seguridad. Reintente en %d s</string>
 
     <!-- Monitoreo -->

@@ -1,15 +1,12 @@
 package cl.inacap.riegoiot
 
-import android.content.Intent
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.os.SystemClock
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
 import cl.inacap.riegoiot.databinding.ActivityLoginBinding
 import com.google.android.material.snackbar.Snackbar
-import kotlinx.coroutines.launch
 
 /**
  * Guarda los intentos fallidos fuera de la Activity para que el bloqueo
@@ -65,30 +62,8 @@ class LoginActivity : AppCompatActivity() {
 
         if (!valid) return
 
-        showLoading(true)
-
-        lifecycleScope.launch {
-            val result = MqttManager.connect(applicationContext, username, password)
-            showLoading(false)
-
-            result.onSuccess {
-                LoginGuard.failedAttempts = 0
-                val intent = Intent(this@LoginActivity, MonitoreoActivity::class.java).apply {
-                    putExtra(MonitoreoActivity.EXTRA_USERNAME, MqttManager.currentUsername)
-                }
-                startActivity(intent)
-                finish()
-            }.onFailure { throwable ->
-                LoginGuard.failedAttempts++
-                val errorMsg = throwable.localizedMessage ?: getString(R.string.login_failed, "Falló la conexión")
-                Snackbar.make(binding.root, errorMsg, Snackbar.LENGTH_LONG).show()
-
-                if (LoginGuard.failedAttempts >= LoginGuard.MAX_ATTEMPTS) {
-                    LoginGuard.lockUntil = SystemClock.elapsedRealtime() + LoginGuard.LOCK_MS
-                    startLockCountdown(LoginGuard.LOCK_MS)
-                }
-            }
-        }
+        // Fase 2: Firebase Auth + rol. Mientras tanto no se da acceso.
+        Snackbar.make(binding.root, R.string.login_pendiente, Snackbar.LENGTH_LONG).show()
     }
 
     private fun startLockCountdown(durationMs: Long) {

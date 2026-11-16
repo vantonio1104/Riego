@@ -1,7 +1,6 @@
-import java.util.Properties
-
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.google.services)
 }
 
 android {
@@ -16,17 +15,6 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-
-        val localProperties = Properties()
-        val localPropertiesFile = rootProject.file("local.properties")
-        if (localPropertiesFile.exists()) {
-            localProperties.load(localPropertiesFile.inputStream())
-        }
-        val mqttHost = localProperties.getProperty("MQTT_HOST") ?: "10.0.2.2"
-        buildConfigField("String", "MQTT_HOST", "\"$mqttHost\"")
-        // SIMULADO=true en local.properties: usa la simulacion de la U2 (sin broker ni Arduino)
-        val simulado = localProperties.getProperty("SIMULADO")?.toBoolean() ?: false
-        buildConfigField("boolean", "SIMULADO", "$simulado")
     }
 
     buildTypes {
@@ -44,13 +32,6 @@ android {
     }
     buildFeatures {
         viewBinding = true
-        buildConfig = true
-    }
-    packaging {
-        resources {
-            excludes += "META-INF/INDEX.LIST"
-            excludes += "META-INF/io.netty.versions.properties"
-        }
     }
 }
 
@@ -62,7 +43,10 @@ dependencies {
     implementation(libs.material)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.kotlinx.coroutines.android)
-    implementation(libs.hivemq.mqtt.client)
+    implementation(libs.kotlinx.coroutines.play.services)
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.auth)
+    implementation(libs.firebase.firestore)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.junit)

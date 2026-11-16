@@ -1,4 +1,0 @@
-# Claves privadas y contraseñas: no se suben (ISO 27002 8.12)
-certs/*.key
-passwd
-passwd_estacion
