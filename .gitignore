@@ -1,19 +1,17 @@
 *.iml
-.gradle
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
+.gradle/
+local.properties
+.idea/
 .DS_Store
-/build
+build/
 /captures
 .externalNativeBuild
 .cxx
-local.properties
-
+*.apk
 
 # Firebase: el repo es publico, no se sube (ISO 27002 8.12)
-google-services.json
+app/google-services.json
+
+# Claves privadas y contrasenas del broker (ISO 27002 8.12)
+broker/certs/*.key
+broker/passwd*
