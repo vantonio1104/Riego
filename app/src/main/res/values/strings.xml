@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Estación de Riego</string>
+
+    <!-- Login -->
+    <string name="login_title">Estación de Riego</string>
+    <string name="login_subtitle">Ingresa tus credenciales para continuar</string>
+    <string name="username_hint">Usuario</string>
+    <string name="password_hint">Contraseña</string>
+    <string name="btn_login">Ingresar</string>
+    <string name="login_empty_error">Este campo es obligatorio</string>
+    <string name="login_failed">Error al iniciar sesión: %s</string>
+    <string name="login_blocked">Bloqueado por seguridad. Reintente en %d s</string>
+
+    <!-- Monitoreo -->
+    <string name="monitoring_title">Monitoreo de Riego</string>
+    <string name="logout">Cerrar sesión</string>
+    <string name="humidity_unit">%1$d%%</string>
+    <string name="plant_status_prefix">"Estado planta: "</string>
+    <string name="plant_status_seca">Seca</string>
+    <string name="plant_status_optima">Óptima</string>
+    <string name="plant_status_saturada">Saturada</string>
+    <string name="conn_mqtt">Wi-Fi (MQTT)</string>
+    <string name="conn_none">Sin conexión</string>
+    <string name="device_online">En línea</string>
+    <string name="device_offline">Fuera de línea</string>
+    <string name="pump_status_prefix">"Estado bomba: "</string>
+    <string name="pump_status_on">Regando</string>
+    <string name="pump_status_off">Detenida</string>
+    <string name="last_update_prefix">Última actualización: %s</string>
+    <string name="last_update_never">Última actualización: N/A</string>
+    <string name="humidity_title">Humedad del Suelo</string>
+    <string name="plant_status_placeholder">Estado planta: Seca</string>
+    <string name="pump_status_placeholder">Estado bomba: Detenida</string>
+    <string name="alert_channel_name">Alertas de riego</string>
+    <string name="alert_dry_title">Planta seca</string>
+    <string name="alert_dry_text">La humedad bajó del umbral configurado</string>
+    <string name="btn_activador">Configuración y Control</string>
+
+    <!-- Activador -->
+    <string name="activador_title">Configuración y Control</string>
+    <string name="back">Volver</string>
+    <string name="threshold_default">Umbral de riego (30%)</string>
+    <string name="profile_label">Perfil de planta</string>
+    <string name="profile_succulent">Suculenta (20%)</string>
+    <string name="profile_normal">Normal (30%)</string>
+    <string name="profile_tropical">Tropical (60%)</string>
+    <string name="threshold_title">Umbral de riego (%1$d%%)</string>
+    <string name="duration_hint">Duración de riego (3-30 s)</string>
+    <string name="duration_error">La duración debe estar entre 3 y 30 segundos</string>
+    <string name="auto_mode">Modo automático</string>
+    <string name="btn_save_config">Guardar configuración</string>
+    <string name="btn_water_now">Regar ahora</string>
+    <string name="water_dialog_title">Confirmar riego manual</string>
+    <string name="water_dialog_msg">¿Desea activar el riego manual ahora?</string>
+    <string name="confirm">Regar</string>
+    <string name="cancel">Cancelar</string>
+    <string name="action_history_label">Historial de acciones (Últimas 20)</string>
+    <string name="action_config_saved">Configuración guardada (Umbral: %1$d%%, Duración: %2$ds, Modo: %3$s)</string>
+    <string name="action_manual_water">Riego manual solicitado</string>
+    <string name="config_saved_success">Configuración guardada correctamente</string>
+    <string name="water_requested_success">Riego manual solicitado</string>
+    <string name="send_error">Sin conexión con la estación. No se envió el comando</string>
+</resources>
