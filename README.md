@@ -1,2 +1,2 @@
-# tarea-y-mas
+# Estacion de riego
 repositorio de cosas necesarias
