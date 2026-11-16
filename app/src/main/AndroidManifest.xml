@@ -30,7 +30,11 @@
         </activity>
 
         <activity
-            android:name="cl.inacap.riegoiot.MonitoreoActivity"
+            android:name="cl.inacap.riegoiot.AdminActivity"
+            android:exported="false" />
+
+        <activity
+            android:name="cl.inacap.riegoiot.UsuarioActivity"
             android:exported="false" />
 
         <activity

@@ -11,18 +11,13 @@ class ActivadorActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityActivadorBinding
     private lateinit var historyAdapter: ActionHistoryAdapter
-    private var username: String = ""
-
-    companion object {
-        const val EXTRA_USERNAME = "extra_username"
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityActivadorBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        username = intent.getStringExtra(EXTRA_USERNAME).orEmpty()
+        Sesion.exigirRol(this, Sesion.ADMIN)
 
         setupToolbar()
         setupPlantProfiles()

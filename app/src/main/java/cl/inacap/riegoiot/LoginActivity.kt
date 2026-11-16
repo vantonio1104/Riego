@@ -1,12 +1,24 @@
 package cl.inacap.riegoiot
 
+import android.content.Intent
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.os.SystemClock
+import android.util.Patterns
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import cl.inacap.riegoiot.databinding.ActivityLoginBinding
 import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.FirebaseNetworkException
+import com.google.firebase.FirebaseTooManyRequestsException
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.FirebaseAuthInvalidUserException
+import com.google.firebase.firestore.FirebaseFirestoreException
+import com.google.firebase.firestore.Source
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 /**
  * Guarda los intentos fallidos fuera de la Activity para que el bloqueo
@@ -39,31 +51,94 @@ class LoginActivity : AppCompatActivity() {
         if (LoginGuard.isLocked()) {
             startLockCountdown(LoginGuard.remainingLockMs())
         }
+
+        // Sesion activa: se confirma el rol antes de entrar
+        if (FirebaseAuth.getInstance().currentUser != null) {
+            lifecycleScope.launch { abrirSegunRol() }
+        }
     }
 
     private fun attemptLogin() {
         if (LoginGuard.isLocked()) return
 
-        val username = binding.etUsername.text?.toString()?.trim().orEmpty()
+        val email = binding.etUsername.text?.toString()?.trim().orEmpty()
         val password = binding.etPassword.text?.toString().orEmpty()
 
         binding.tilUsername.error = null
         binding.tilPassword.error = null
 
         var valid = true
-        if (username.isEmpty()) {
-            binding.tilUsername.error = getString(R.string.login_empty_error)
+        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            binding.tilUsername.error = getString(R.string.login_email_error)
             valid = false
         }
-        if (password.isEmpty()) {
-            binding.tilPassword.error = getString(R.string.login_empty_error)
+        if (password.length < 6) {
+            binding.tilPassword.error = getString(R.string.login_password_error)
             valid = false
         }
 
         if (!valid) return
 
-        // Fase 2: Firebase Auth + rol. Mientras tanto no se da acceso.
-        Snackbar.make(binding.root, R.string.login_pendiente, Snackbar.LENGTH_LONG).show()
+        showLoading(true)
+
+        lifecycleScope.launch {
+            try {
+                FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password).await()
+            } catch (e: Exception) {
+                showLoading(false)
+                onLoginError(e)
+                return@launch
+            }
+            LoginGuard.failedAttempts = 0
+            abrirSegunRol()
+        }
+    }
+
+    private fun onLoginError(e: Exception) {
+        when (e) {
+            is FirebaseNetworkException -> mostrar(getString(R.string.login_no_network))
+            is FirebaseTooManyRequestsException -> mostrar(getString(R.string.login_too_many))
+            is FirebaseAuthInvalidCredentialsException, is FirebaseAuthInvalidUserException -> {
+                mostrar(getString(R.string.login_bad_credentials))
+                LoginGuard.failedAttempts++
+                if (LoginGuard.failedAttempts >= LoginGuard.MAX_ATTEMPTS) {
+                    LoginGuard.lockUntil = SystemClock.elapsedRealtime() + LoginGuard.LOCK_MS
+                    startLockCountdown(LoginGuard.LOCK_MS)
+                }
+            }
+            else -> mostrar(getString(R.string.login_failed, e.localizedMessage.orEmpty()))
+        }
+    }
+
+    /** Lee el rol desde el servidor. Sin rol confirmado no hay acceso. */
+    private suspend fun abrirSegunRol() {
+        showLoading(true)
+        val rol = try {
+            Sesion.leerRol(Source.SERVER)
+        } catch (e: Exception) {
+            FirebaseAuth.getInstance().signOut()
+            showLoading(false)
+            val sinRed = e is FirebaseFirestoreException && e.code == FirebaseFirestoreException.Code.UNAVAILABLE
+            mostrar(if (sinRed) getString(R.string.login_no_network) else getString(R.string.login_failed, e.localizedMessage.orEmpty()))
+            return
+        }
+        val destino = when (rol) {
+            Sesion.ADMIN -> AdminActivity::class.java
+            Sesion.USUARIO -> UsuarioActivity::class.java
+            else -> null
+        }
+        if (destino == null) {
+            FirebaseAuth.getInstance().signOut()
+            showLoading(false)
+            mostrar(getString(R.string.login_no_role))
+            return
+        }
+        startActivity(Intent(this, destino))
+        finish()
+    }
+
+    private fun mostrar(msg: String) {
+        Snackbar.make(binding.root, msg, Snackbar.LENGTH_LONG).show()
     }
 
     private fun startLockCountdown(durationMs: Long) {

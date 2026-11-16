@@ -5,13 +5,21 @@
     <!-- Login -->
     <string name="login_title">Estación de Riego</string>
     <string name="login_subtitle">Ingresa tus credenciales para continuar</string>
-    <string name="username_hint">Usuario</string>
+    <string name="username_hint">Correo</string>
     <string name="password_hint">Contraseña</string>
     <string name="btn_login">Ingresar</string>
     <string name="login_empty_error">Este campo es obligatorio</string>
     <string name="login_failed">Error al iniciar sesión: %s</string>
-    <string name="login_pendiente">Inicio de sesión con Firebase pendiente (Fase 2)</string>
+    <string name="login_email_error">Ingresa un correo válido</string>
+    <string name="login_password_error">La contraseña debe tener al menos 6 caracteres</string>
+    <string name="login_bad_credentials">Correo o contraseña incorrectos</string>
+    <string name="login_no_network">Sin conexión. Revisa tu red e intenta de nuevo</string>
+    <string name="login_too_many">Demasiados intentos. Espera unos minutos e intenta de nuevo</string>
+    <string name="login_no_role">Tu cuenta no tiene un rol asignado. Contacta al administrador</string>
     <string name="login_blocked">Bloqueado por seguridad. Reintente en %d s</string>
+
+    <!-- Usuario -->
+    <string name="usuario_title">Solicitud de riego</string>
 
     <!-- Monitoreo -->
     <string name="monitoring_title">Monitoreo de Riego</string>

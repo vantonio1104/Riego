@@ -16,17 +16,14 @@ import androidx.core.content.ContextCompat
 import cl.inacap.riegoiot.databinding.ActivityMonitoreoBinding
 import com.google.android.material.snackbar.Snackbar
 
-class MonitoreoActivity : AppCompatActivity() {
+class AdminActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMonitoreoBinding
-    private var username: String = ""
-    private var userRole: UserRole = UserRole.OBSERVADOR
 
     private val notificationPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
 
     companion object {
-        const val EXTRA_USERNAME = "extra_username"
         private const val ALERT_CHANNEL_ID = "alertas_riego"
         private const val ALERT_NOTIFICATION_ID = 1001
     }
@@ -36,8 +33,7 @@ class MonitoreoActivity : AppCompatActivity() {
         binding = ActivityMonitoreoBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        username = intent.getStringExtra(EXTRA_USERNAME).orEmpty()
-        userRole = UserRoleManager.getRole(username)
+        Sesion.exigirRol(this, Sesion.ADMIN)
 
         setupToolbar()
         setupAdminButton()
@@ -48,10 +44,7 @@ class MonitoreoActivity : AppCompatActivity() {
     private fun setupToolbar() {
         binding.toolbarMonitoreo.setOnMenuItemClickListener { menuItem ->
             if (menuItem.itemId == R.id.action_logout) {
-                val intent = Intent(this, LoginActivity::class.java)
-                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                startActivity(intent)
-                finish()
+                Sesion.cerrar(this)
                 true
             } else {
                 false
@@ -60,16 +53,9 @@ class MonitoreoActivity : AppCompatActivity() {
     }
 
     private fun setupAdminButton() {
-        if (userRole == UserRole.ADMINISTRADOR) {
-            binding.btnGoToActivador.visibility = View.VISIBLE
-            binding.btnGoToActivador.setOnClickListener {
-                val intent = Intent(this, ActivadorActivity::class.java).apply {
-                    putExtra(ActivadorActivity.EXTRA_USERNAME, username)
-                }
-                startActivity(intent)
-            }
-        } else {
-            binding.btnGoToActivador.visibility = View.GONE
+        binding.btnGoToActivador.visibility = View.VISIBLE
+        binding.btnGoToActivador.setOnClickListener {
+            startActivity(Intent(this, ActivadorActivity::class.java))
         }
     }
 
