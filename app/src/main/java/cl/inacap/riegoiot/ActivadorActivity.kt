@@ -2,15 +2,24 @@ package cl.inacap.riegoiot
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import cl.inacap.riegoiot.databinding.ActivityActivadorBinding
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 class ActivadorActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityActivadorBinding
     private lateinit var historyAdapter: ActionHistoryAdapter
+    private val db = FirebaseFirestore.getInstance()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -18,6 +27,7 @@ class ActivadorActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         Sesion.exigirRol(this, Sesion.ADMIN)
+        deleteFile("actions.txt") // historial local de la U3: ahora vive en la coleccion acciones
 
         setupToolbar()
         setupPlantProfiles()
@@ -32,9 +42,6 @@ class ActivadorActivity : AppCompatActivity() {
             finish()
         }
     }
-
-    // El slider usa stepSize=5: un valor fuera del paso lanza IllegalStateException
-    private fun snapToStep(value: Int): Int = ((value.coerceIn(10, 90) + 2) / 5) * 5
 
     private fun setupPlantProfiles() {
         binding.rgPlantProfile.setOnCheckedChangeListener { _, checkedId ->
@@ -72,12 +79,39 @@ class ActivadorActivity : AppCompatActivity() {
         historyAdapter = ActionHistoryAdapter()
         binding.rvActionHistory.layoutManager = LinearLayoutManager(this)
         binding.rvActionHistory.adapter = historyAdapter
-        refreshHistory()
+        db.collection("acciones").orderBy("fecha", Query.Direction.DESCENDING).limit(20)
+            .addSnapshotListener(this) { snap, e ->
+                if (e != null || snap == null) return@addSnapshotListener // Fase 6: errores
+                historyAdapter.updateItems(snap.documents.map {
+                    ActionLog(
+                        it.getString("accion").orEmpty(),
+                        ActionLog.fecha(it.getTimestamp("fecha", DocumentSnapshot.ServerTimestampBehavior.ESTIMATE))
+                    )
+                })
+            }
     }
 
-    private fun refreshHistory() {
-        val actions = ActionLogger.getRecentActions(this, 20)
-        historyAdapter.updateItems(actions)
+    /** Crea el comando (estado pendiente) y su registro en acciones en una sola escritura. */
+    private fun enviarComando(comando: Map<String, Any>, accion: String, mensajeOk: Int) {
+        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return Sesion.cerrar(this)
+        val batch = db.batch()
+        batch.set(
+            db.collection("comandos").document(),
+            comando + mapOf("creadoPor" to uid, "fecha" to FieldValue.serverTimestamp(), "estado" to "pendiente")
+        )
+        batch.set(
+            db.collection("acciones").document(),
+            mapOf("uid" to uid, "accion" to accion, "fecha" to FieldValue.serverTimestamp())
+        )
+        lifecycleScope.launch {
+            val ok = try {
+                batch.commit().await()
+                true
+            } catch (e: Exception) {
+                false
+            }
+            Snackbar.make(binding.root, if (ok) mensajeOk else R.string.send_error, Snackbar.LENGTH_LONG).show()
+        }
     }
 
     private fun setupSaveButton() {
@@ -89,13 +123,17 @@ class ActivadorActivity : AppCompatActivity() {
             val duration = durationStr.toIntOrNull()
             val isAutoMode = binding.switchAutoMode.isChecked
 
-            if (duration == null || duration < 3 || duration > 30) {
+            if (duration == null || Protocolo.cmdConfig(threshold, duration, isAutoMode) == null) {
                 binding.tilDuration.error = getString(R.string.duration_error)
                 return@setOnClickListener
             }
 
-            // Fase 5: crear doc en comandos y acciones
-            Snackbar.make(binding.root, getString(R.string.send_error), Snackbar.LENGTH_LONG).show()
+            val modeStr = if (isAutoMode) "AUTO" else "MANUAL"
+            enviarComando(
+                mapOf("tipo" to "CFG", "umbral" to threshold, "duracion" to duration, "auto" to isAutoMode),
+                getString(R.string.action_config_saved, threshold, duration, modeStr),
+                R.string.config_saved_success
+            )
         }
     }
 
@@ -106,8 +144,11 @@ class ActivadorActivity : AppCompatActivity() {
                 .setMessage(R.string.water_dialog_msg)
                 .setPositiveButton(R.string.confirm) { dialog, _ ->
                     dialog.dismiss()
-                    // Fase 5: crear doc en comandos y acciones
-                    Snackbar.make(binding.root, getString(R.string.send_error), Snackbar.LENGTH_LONG).show()
+                    enviarComando(
+                        mapOf("tipo" to Protocolo.CMD_REGAR),
+                        getString(R.string.action_manual_water),
+                        R.string.water_requested_success
+                    )
                 }
                 .setNegativeButton(R.string.cancel) { dialog, _ ->
                     dialog.dismiss()

@@ -5,6 +5,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.ColorStateList
 import android.os.Build
 import android.os.Bundle
 import android.view.View
@@ -13,12 +14,18 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
+import androidx.recyclerview.widget.LinearLayoutManager
 import cl.inacap.riegoiot.databinding.ActivityMonitoreoBinding
 import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 
 class AdminActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMonitoreoBinding
+    private val db = FirebaseFirestore.getInstance()
+    private var estabaSeca = false
 
     private val notificationPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
@@ -38,7 +45,53 @@ class AdminActivity : AppCompatActivity() {
         setupToolbar()
         setupAdminButton()
         setupNotifications()
-        // Fase 5: datos de estacion/riego01 desde Firestore
+        observarEstacion()
+        observarSolicitudes()
+    }
+
+    /** Mientras no llegue estacion/riego01 la pantalla muestra "Sin datos" (sin valores inventados). */
+    private fun observarEstacion() {
+        db.collection("estacion").document("riego01").addSnapshotListener(this) { doc, e ->
+            if (e != null || doc == null) return@addSnapshotListener // Fase 6: errores
+            val humedad = doc.getLong("humedad")?.toInt() ?: return@addSnapshotListener
+            val umbral = doc.getLong("umbral")?.toInt() ?: return@addSnapshotListener
+            updateHumidityUI(humedad, umbral)
+
+            val regando = doc.getBoolean("bomba") == true
+            binding.tvPumpStatus.text = getString(R.string.pump_status_prefix) +
+                getString(if (regando) R.string.pump_status_on else R.string.pump_status_off)
+
+            val online = doc.getBoolean("online") == true
+            binding.chipDeviceStatus.setText(if (online) R.string.device_online else R.string.device_offline)
+            binding.chipDeviceStatus.chipBackgroundColor = ColorStateList.valueOf(
+                ContextCompat.getColor(this, if (online) R.color.status_online else R.color.status_offline)
+            )
+            binding.chipDeviceStatus.setTextColor(ContextCompat.getColor(this, R.color.white))
+
+            binding.tvLastUpdate.text =
+                getString(R.string.last_update_prefix, ActionLog.fecha(doc.getTimestamp("actualizado")))
+
+            val seca = humedad < umbral
+            if (seca && !estabaSeca) showDryAlert()
+            estabaSeca = seca
+        }
+    }
+
+    private fun observarSolicitudes() {
+        val adapter = ActionHistoryAdapter()
+        binding.rvSolicitudes.layoutManager = LinearLayoutManager(this)
+        binding.rvSolicitudes.adapter = adapter
+        db.collection("solicitudes").orderBy("fecha", Query.Direction.DESCENDING).limit(50)
+            .addSnapshotListener(this) { snap, e ->
+                if (e != null || snap == null) return@addSnapshotListener // Fase 6: errores
+                adapter.updateItems(snap.documents.map {
+                    ActionLog(
+                        getString(R.string.solicitud_item, it.getString("prioridad"), it.getString("sector"), it.getString("comentario")),
+                        getString(R.string.solicitud_detalle, it.getString("nombre"), ActionLog.fecha(it.getTimestamp("fecha")))
+                    )
+                })
+                binding.tvSinSolicitudes.isVisible = snap.isEmpty
+            }
     }
 
     private fun setupToolbar() {

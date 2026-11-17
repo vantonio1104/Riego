@@ -22,8 +22,8 @@ class ActionHistoryAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = items[position]
-        holder.binding.tvActionText.text = item.toFormattedText()
-        holder.binding.tvActionTimestamp.text = item.toFormattedTimestamp()
+        holder.binding.tvActionText.text = item.texto
+        holder.binding.tvActionTimestamp.text = item.fecha
     }
 
     override fun getItemCount(): Int = items.size

@@ -50,10 +50,16 @@
     <string name="pump_status_on">Regando</string>
     <string name="pump_status_off">Detenida</string>
     <string name="last_update_prefix">Última actualización: %s</string>
-    <string name="last_update_never">Última actualización: N/A</string>
+    <string name="last_update_never">Última actualización: sin datos</string>
     <string name="humidity_title">Humedad del Suelo</string>
-    <string name="plant_status_placeholder">Estado planta: Seca</string>
-    <string name="pump_status_placeholder">Estado bomba: Detenida</string>
+    <string name="plant_status_placeholder">Estado planta: sin datos</string>
+    <string name="pump_status_placeholder">Estado bomba: sin datos</string>
+    <string name="sin_datos">Sin datos</string>
+    <string name="humedad_sin_datos">--</string>
+    <string name="solicitudes_label">Solicitudes de usuarios</string>
+    <string name="solicitudes_vacio">Aún no hay solicitudes</string>
+    <string name="solicitud_item">[%1$s] %2$s: %3$s</string>
+    <string name="solicitud_detalle">%1$s · %2$s</string>
     <string name="alert_channel_name">Alertas de riego</string>
     <string name="alert_dry_title">Planta seca</string>
     <string name="alert_dry_text">La humedad bajó del umbral configurado</string>
@@ -82,5 +88,5 @@
     <string name="action_manual_water">Riego manual solicitado</string>
     <string name="config_saved_success">Configuración guardada correctamente</string>
     <string name="water_requested_success">Riego manual solicitado</string>
-    <string name="send_error">Sin conexión con la estación. No se envió el comando</string>
+    <string name="send_error">No se pudo guardar el comando. Intenta de nuevo</string>
 </resources>
