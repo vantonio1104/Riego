@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Logo propio de Estacion de Riego: gota de agua con una hoja -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="96dp"
+    android:height="96dp"
+    android:viewportWidth="100"
+    android:viewportHeight="100">
+
+    <!-- Gota -->
+    <path
+        android:fillColor="#0288D1"
+        android:pathData="M50,6C50,6 20,44 20,64C20,80.6 33.4,94 50,94C66.6,94 80,80.6 80,64C80,44 50,6 50,6Z" />
+    <!-- Brillo -->
+    <path
+        android:fillColor="#4FC3F7"
+        android:pathData="M33,62C33,52 40,42 44,36C41,46 38,54 38,64C38,67 36,69 35,69C33.8,69 33,66 33,62Z" />
+    <!-- Hoja -->
+    <path
+        android:fillColor="#66BB6A"
+        android:pathData="M50,86C38,80 36,64 48,50C63,58 64,76 50,86Z" />
+    <!-- Nervio de la hoja -->
+    <path
+        android:pathData="M50,86C49,74 48,64 48,54"
+        android:strokeWidth="2.5"
+        android:strokeColor="#1B5E20"
+        android:strokeLineCap="round" />
+</vector>

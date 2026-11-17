@@ -4,6 +4,15 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <!-- Fondo (dia en modo claro, noche en modo oscuro) con capa para legibilidad -->
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:foreground="@color/fondo_overlay"
+        android:importantForAccessibility="no"
+        android:scaleType="centerCrop"
+        android:src="@drawable/fondo_riego" />
+
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
@@ -33,6 +42,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/form_titulo"
+                android:fontFamily="@font/nunito_bold"
                 android:textAppearance="?attr/textAppearanceHeadlineSmall"
                 android:textStyle="bold" />
 
