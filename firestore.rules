@@ -1,0 +1,21 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{db}/documents {
+    function rol() { return get(/databases/$(db)/documents/usuarios/$(request.auth.uid)).data.rol; }
+    function es(r) { return request.auth != null && rol() == r; }
+
+    match /usuarios/{uid}   { allow read: if request.auth != null && (request.auth.uid == uid || es('admin'));
+                              allow write: if false; }
+    match /estacion/{id}    { allow read: if es('admin'); allow write: if es('estacion'); }
+    match /comandos/{id}    { allow create: if es('admin') && request.resource.data.tipo in ['REGAR','CFG'];
+                              allow read, update: if es('estacion') || es('admin');
+                              allow delete: if false; }
+    match /solicitudes/{id} { allow create: if (es('usuario') || es('admin'))
+                                && request.resource.data.uid == request.auth.uid
+                                && request.resource.data.comentario is string
+                                && request.resource.data.comentario.size() <= 200;
+                              allow read: if es('admin');
+                              allow update, delete: if false; }
+    match /acciones/{id}    { allow read, create: if es('admin'); allow update, delete: if false; }
+  }
+}
