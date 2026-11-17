@@ -17,4 +17,125 @@
 
     </com.google.android.material.appbar.AppBarLayout>
 
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="24dp">
+
+            <TextView
+                android:id="@+id/tvFormTitulo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/form_titulo"
+                android:textAppearance="?attr/textAppearanceHeadlineSmall"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvFormDescripcion"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="@string/form_descripcion"
+                android:textAppearance="?attr/textAppearanceBodyMedium" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilSector"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:hint="@string/sector_hint"
+                app:counterEnabled="true"
+                app:counterMaxLength="40">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etSector"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textCapSentences"
+                    android:maxLength="40"
+                    android:maxLines="1" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilComentario"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:hint="@string/comentario_hint"
+                app:counterEnabled="true"
+                app:counterMaxLength="200">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etComentario"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="top"
+                    android:inputType="textCapSentences|textMultiLine"
+                    android:maxLength="200"
+                    android:minLines="3" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <TextView
+                android:id="@+id/tvPrioridadLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/prioridad_label"
+                android:textAppearance="?attr/textAppearanceTitleSmall" />
+
+            <RadioGroup
+                android:id="@+id/rgPrioridad"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:checkedButton="@id/rbMedia"
+                android:orientation="horizontal">
+
+                <RadioButton
+                    android:id="@+id/rbBaja"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/prioridad_baja" />
+
+                <RadioButton
+                    android:id="@+id/rbMedia"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/prioridad_media" />
+
+                <RadioButton
+                    android:id="@+id/rbAlta"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/prioridad_alta" />
+            </RadioGroup>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnEnviar"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginTop="24dp"
+                android:text="@string/btn_enviar" />
+
+            <TextView
+                android:id="@+id/tvEstado"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:gravity="center"
+                android:textAppearance="?attr/textAppearanceBodyMedium" />
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

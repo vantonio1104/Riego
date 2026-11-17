@@ -20,6 +20,19 @@
 
     <!-- Usuario -->
     <string name="usuario_title">Solicitud de riego</string>
+    <string name="form_titulo">Nueva solicitud</string>
+    <string name="form_descripcion">Indica dónde necesitas riego y por qué</string>
+    <string name="sector_hint">Sector (ej. Invernadero 2)</string>
+    <string name="comentario_hint">Comentario</string>
+    <string name="prioridad_label">Prioridad</string>
+    <string name="prioridad_baja">Baja</string>
+    <string name="prioridad_media">Media</string>
+    <string name="prioridad_alta">Alta</string>
+    <string name="btn_enviar">Enviar solicitud</string>
+    <string name="error_max_caracteres">Máximo %d caracteres</string>
+    <string name="estado_enviando">Enviando…</string>
+    <string name="estado_enviado">Solicitud enviada</string>
+    <string name="estado_error">No se pudo enviar. Toca Enviar para reintentar</string>
 
     <!-- Monitoreo -->
     <string name="monitoring_title">Monitoreo de Riego</string>
