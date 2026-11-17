@@ -79,9 +79,14 @@ class ActivadorActivity : AppCompatActivity() {
         historyAdapter = ActionHistoryAdapter()
         binding.rvActionHistory.layoutManager = LinearLayoutManager(this)
         binding.rvActionHistory.adapter = historyAdapter
+        observarHistorial()
+    }
+
+    private fun observarHistorial() {
         db.collection("acciones").orderBy("fecha", Query.Direction.DESCENDING).limit(20)
             .addSnapshotListener(this) { snap, e ->
-                if (e != null || snap == null) return@addSnapshotListener // Fase 6: errores
+                if (e != null) return@addSnapshotListener errorConReintentar(binding.root, e) { observarHistorial() }
+                if (snap == null) return@addSnapshotListener
                 historyAdapter.updateItems(snap.documents.map {
                     ActionLog(
                         it.getString("accion").orEmpty(),
@@ -103,14 +108,17 @@ class ActivadorActivity : AppCompatActivity() {
             db.collection("acciones").document(),
             mapOf("uid" to uid, "accion" to accion, "fecha" to FieldValue.serverTimestamp())
         )
+        val tarea = batch.commit()
+        // Sin red queda en cache y se sube al reconectar
+        if (!hayRed()) Snackbar.make(binding.root, R.string.pendiente_sin_red, Snackbar.LENGTH_LONG).show()
         lifecycleScope.launch {
-            val ok = try {
-                batch.commit().await()
-                true
+            val mensaje = try {
+                tarea.await()
+                mensajeOk
             } catch (e: Exception) {
-                false
+                mensajeError(e)
             }
-            Snackbar.make(binding.root, if (ok) mensajeOk else R.string.send_error, Snackbar.LENGTH_LONG).show()
+            Snackbar.make(binding.root, mensaje, Snackbar.LENGTH_LONG).show()
         }
     }
 

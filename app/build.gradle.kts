@@ -33,6 +33,10 @@ android {
     buildFeatures {
         viewBinding = true
     }
+    // Los tests locales crean excepciones de Firebase, que llaman a android.text.TextUtils
+    testOptions {
+        unitTests.isReturnDefaultValues = true
+    }
 }
 
 dependencies {

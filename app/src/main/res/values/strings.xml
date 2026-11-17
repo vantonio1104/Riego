@@ -9,7 +9,6 @@
     <string name="password_hint">Contraseña</string>
     <string name="btn_login">Ingresar</string>
     <string name="login_empty_error">Este campo es obligatorio</string>
-    <string name="login_failed">Error al iniciar sesión: %s</string>
     <string name="login_email_error">Ingresa un correo válido</string>
     <string name="login_password_error">La contraseña debe tener al menos 6 caracteres</string>
     <string name="login_bad_credentials">Correo o contraseña incorrectos</string>
@@ -32,7 +31,8 @@
     <string name="error_max_caracteres">Máximo %d caracteres</string>
     <string name="estado_enviando">Enviando…</string>
     <string name="estado_enviado">Solicitud enviada</string>
-    <string name="estado_error">No se pudo enviar. Toca Enviar para reintentar</string>
+    <string name="estado_error">%s\nToca Enviar para reintentar</string>
+    <string name="pendiente_sin_red">Sin conexión: se enviará al reconectar</string>
 
     <!-- Monitoreo -->
     <string name="monitoring_title">Monitoreo de Riego</string>
@@ -42,7 +42,8 @@
     <string name="plant_status_seca">Seca</string>
     <string name="plant_status_optima">Óptima</string>
     <string name="plant_status_saturada">Saturada</string>
-    <string name="conn_mqtt">Wi-Fi (MQTT)</string>
+    <string name="conn_wifi">Wi-Fi</string>
+    <string name="conn_datos">Datos móviles</string>
     <string name="conn_none">Sin conexión</string>
     <string name="device_online">En línea</string>
     <string name="device_offline">Fuera de línea</string>
@@ -88,5 +89,10 @@
     <string name="action_manual_water">Riego manual solicitado</string>
     <string name="config_saved_success">Configuración guardada correctamente</string>
     <string name="water_requested_success">Riego manual solicitado</string>
-    <string name="send_error">No se pudo guardar el comando. Intenta de nuevo</string>
+
+    <!-- Errores -->
+    <string name="error_sin_permiso">No tienes permiso para esta acción</string>
+    <string name="error_auth">Tu sesión no es válida. Vuelve a iniciar sesión</string>
+    <string name="error_generico">Ocurrió un error. Intenta de nuevo</string>
+    <string name="reintentar">Reintentar</string>
 </resources>

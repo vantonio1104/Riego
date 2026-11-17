@@ -15,7 +15,6 @@ import com.google.firebase.FirebaseTooManyRequestsException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
-import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.Source
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
@@ -106,7 +105,7 @@ class LoginActivity : AppCompatActivity() {
                     startLockCountdown(LoginGuard.LOCK_MS)
                 }
             }
-            else -> mostrar(getString(R.string.login_failed, e.localizedMessage.orEmpty()))
+            else -> mostrar(getString(mensajeError(e)))
         }
     }
 
@@ -118,8 +117,7 @@ class LoginActivity : AppCompatActivity() {
         } catch (e: Exception) {
             FirebaseAuth.getInstance().signOut()
             showLoading(false)
-            val sinRed = e is FirebaseFirestoreException && e.code == FirebaseFirestoreException.Code.UNAVAILABLE
-            mostrar(if (sinRed) getString(R.string.login_no_network) else getString(R.string.login_failed, e.localizedMessage.orEmpty()))
+            mostrar(getString(mensajeError(e)))
             return
         }
         val destino = when (rol) {

@@ -14,7 +14,7 @@
     <color name="green_secondary">#4CAF50</color>
 
     <!-- Status Colors -->
-    <color name="status_mqtt">#2E7D32</color>
+    <color name="status_conectado">#2E7D32</color>
     <color name="status_ble">#0288D1</color>
     <color name="status_disconnected">#D32F2F</color>
     <color name="status_online">#388E3C</color>

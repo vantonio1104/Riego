@@ -6,6 +6,9 @@ import android.app.NotificationManager
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
 import android.os.Build
 import android.os.Bundle
 import android.view.View
@@ -26,6 +29,15 @@ class AdminActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMonitoreoBinding
     private val db = FirebaseFirestore.getInstance()
     private var estabaSeca = false
+    private val redCallback = object : ConnectivityManager.NetworkCallback() {
+        override fun onCapabilitiesChanged(network: Network, caps: NetworkCapabilities) {
+            runOnUiThread { updateConnectionChip(caps) }
+        }
+
+        override fun onLost(network: Network) {
+            runOnUiThread { updateConnectionChip(null) }
+        }
+    }
 
     private val notificationPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
@@ -52,7 +64,8 @@ class AdminActivity : AppCompatActivity() {
     /** Mientras no llegue estacion/riego01 la pantalla muestra "Sin datos" (sin valores inventados). */
     private fun observarEstacion() {
         db.collection("estacion").document("riego01").addSnapshotListener(this) { doc, e ->
-            if (e != null || doc == null) return@addSnapshotListener // Fase 6: errores
+            if (e != null) return@addSnapshotListener errorConReintentar(binding.root, e) { observarEstacion() }
+            if (doc == null) return@addSnapshotListener
             val humedad = doc.getLong("humedad")?.toInt() ?: return@addSnapshotListener
             val umbral = doc.getLong("umbral")?.toInt() ?: return@addSnapshotListener
             updateHumidityUI(humedad, umbral)
@@ -83,7 +96,8 @@ class AdminActivity : AppCompatActivity() {
         binding.rvSolicitudes.adapter = adapter
         db.collection("solicitudes").orderBy("fecha", Query.Direction.DESCENDING).limit(50)
             .addSnapshotListener(this) { snap, e ->
-                if (e != null || snap == null) return@addSnapshotListener // Fase 6: errores
+                if (e != null) return@addSnapshotListener errorConReintentar(binding.root, e) { observarSolicitudes() }
+                if (snap == null) return@addSnapshotListener
                 adapter.updateItems(snap.documents.map {
                     ActionLog(
                         getString(R.string.solicitud_item, it.getString("prioridad"), it.getString("sector"), it.getString("comentario")),
@@ -92,6 +106,34 @@ class AdminActivity : AppCompatActivity() {
                 })
                 binding.tvSinSolicitudes.isVisible = snap.isEmpty
             }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        val cm = getSystemService(ConnectivityManager::class.java)
+        updateConnectionChip(cm.getNetworkCapabilities(cm.activeNetwork))
+        cm.registerDefaultNetworkCallback(redCallback)
+    }
+
+    override fun onStop() {
+        super.onStop()
+        getSystemService(ConnectivityManager::class.java).unregisterNetworkCallback(redCallback)
+    }
+
+    private fun updateConnectionChip(caps: NetworkCapabilities?) {
+        val conectado = caps?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
+        binding.chipConnection.visibility = View.VISIBLE
+        binding.chipConnection.setText(
+            when {
+                !conectado -> R.string.conn_none
+                caps!!.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> R.string.conn_wifi
+                else -> R.string.conn_datos
+            }
+        )
+        binding.chipConnection.chipBackgroundColor = ColorStateList.valueOf(
+            ContextCompat.getColor(this, if (conectado) R.color.status_conectado else R.color.status_disconnected)
+        )
+        binding.chipConnection.setTextColor(ContextCompat.getColor(this, R.color.white))
     }
 
     private fun setupToolbar() {

@@ -77,7 +77,7 @@ class UsuarioActivity : AppCompatActivity() {
                 } catch (e: Exception) {
                     null
                 }
-                doc.set(
+                val tarea = doc.set(
                     hashMapOf(
                         "uid" to user.uid,
                         "nombre" to (nombre ?: user.email.orEmpty()),
@@ -86,18 +86,30 @@ class UsuarioActivity : AppCompatActivity() {
                         "prioridad" to prioridad,
                         "fecha" to FieldValue.serverTimestamp()
                     )
-                ).await()
-                ref = null
-                binding.etSector.text = null
-                binding.etComentario.text = null
-                binding.rgPrioridad.check(R.id.rbMedia)
+                )
+                // Sin red Firestore guarda la escritura en cache y la sube al reconectar
+                val enCola = !hayRed()
+                if (enCola) {
+                    limpiarFormulario()
+                    binding.tvEstado.text = getString(R.string.pendiente_sin_red)
+                    setEnviando(false)
+                }
+                tarea.await()
+                if (!enCola) limpiarFormulario()
                 binding.tvEstado.text = getString(R.string.estado_enviado)
             } catch (e: Exception) {
                 // Se mantiene ref: el reintento escribe el mismo doc
-                binding.tvEstado.text = getString(R.string.estado_error)
+                binding.tvEstado.text = getString(R.string.estado_error, getString(mensajeError(e)))
             }
             setEnviando(false)
         }
+    }
+
+    private fun limpiarFormulario() {
+        ref = null
+        binding.etSector.text = null
+        binding.etComentario.text = null
+        binding.rgPrioridad.check(R.id.rbMedia)
     }
 
     private fun setEnviando(enviando: Boolean) {
