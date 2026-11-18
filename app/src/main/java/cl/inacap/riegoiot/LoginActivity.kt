@@ -6,6 +6,7 @@ import android.os.CountDownTimer
 import android.os.SystemClock
 import android.util.Patterns
 import android.view.View
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import cl.inacap.riegoiot.databinding.ActivityLoginBinding
@@ -120,17 +121,19 @@ class LoginActivity : AppCompatActivity() {
             mostrar(getString(mensajeError(e)))
             return
         }
-        val destino = when (rol) {
-            Sesion.ADMIN, Sesion.OBSERVADOR -> AdminActivity::class.java
-            Sesion.USUARIO -> UsuarioActivity::class.java
-            else -> null
+        val (destino, nombreRol) = when (rol) {
+            Sesion.ADMIN -> AdminActivity::class.java to R.string.rol_admin
+            Sesion.OBSERVADOR -> AdminActivity::class.java to R.string.rol_observador
+            Sesion.USUARIO -> UsuarioActivity::class.java to R.string.rol_usuario
+            else -> {
+                FirebaseAuth.getInstance().signOut()
+                showLoading(false)
+                mostrar(getString(R.string.login_no_role))
+                return
+            }
         }
-        if (destino == null) {
-            FirebaseAuth.getInstance().signOut()
-            showLoading(false)
-            mostrar(getString(R.string.login_no_role))
-            return
-        }
+        // Mensaje de exito: el Toast sigue visible en la pantalla siguiente
+        Toast.makeText(applicationContext, getString(R.string.sesion_iniciada, getString(nombreRol)), Toast.LENGTH_SHORT).show()
         startActivity(Intent(this, destino))
         finish()
     }

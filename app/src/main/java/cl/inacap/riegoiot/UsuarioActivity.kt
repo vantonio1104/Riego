@@ -29,7 +29,7 @@ class UsuarioActivity : AppCompatActivity() {
 
         binding.toolbarUsuario.setOnMenuItemClickListener { menuItem ->
             if (menuItem.itemId == R.id.action_logout) {
-                Sesion.cerrar(this)
+                Sesion.cerrar(this, R.string.sesion_cerrada)
                 true
             } else {
                 false

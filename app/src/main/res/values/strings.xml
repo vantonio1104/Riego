@@ -16,6 +16,12 @@
     <string name="login_too_many">Demasiados intentos. Espera unos minutos e intenta de nuevo</string>
     <string name="login_no_role">Tu cuenta no tiene un rol asignado. Contacta al administrador</string>
     <string name="login_blocked">Bloqueado por seguridad. Reintente en %d s</string>
+    <string name="sesion_iniciada">Sesión iniciada como %s</string>
+    <string name="rol_admin">Administrador</string>
+    <string name="rol_usuario">Usuario</string>
+    <string name="rol_observador">Observador</string>
+    <string name="sesion_cerrada">Sesión cerrada</string>
+    <string name="acceso_denegado">No tienes acceso a esa pantalla. Inicia sesión con otra cuenta</string>
 
     <!-- Usuario -->
     <string name="usuario_title">Solicitud de riego</string>
@@ -39,7 +45,7 @@
     <string name="monitoring_title_readonly">Monitoreo (solo lectura)</string>
     <string name="logout">Cerrar sesión</string>
     <string name="humidity_unit">%1$d%%</string>
-    <string name="plant_status_prefix">"Estado planta: "</string>
+    <string name="plant_status">Estado planta: %s</string>
     <string name="plant_status_seca">Seca</string>
     <string name="plant_status_optima">Óptima</string>
     <string name="plant_status_saturada">Saturada</string>
@@ -48,7 +54,7 @@
     <string name="conn_none">Sin conexión</string>
     <string name="device_online">En línea</string>
     <string name="device_offline">Fuera de línea</string>
-    <string name="pump_status_prefix">"Estado bomba: "</string>
+    <string name="pump_status">Estado bomba: %s</string>
     <string name="pump_status_on">Regando</string>
     <string name="pump_status_off">Detenida</string>
     <string name="last_update_prefix">Última actualización: %s</string>
@@ -77,6 +83,7 @@
     <string name="profile_tropical">Tropical (60%)</string>
     <string name="threshold_title">Umbral de riego (%1$d%%)</string>
     <string name="duration_hint">Duración de riego (3-30 s)</string>
+    <string name="duracion_inicial" translatable="false">10</string>
     <string name="duration_error">La duración debe estar entre 3 y 30 segundos</string>
     <string name="auto_mode">Modo automático</string>
     <string name="btn_save_config">Guardar configuración</string>

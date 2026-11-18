@@ -80,8 +80,10 @@ class AdminActivity : AppCompatActivity() {
             updateHumidityUI(humedad, umbral)
 
             val regando = doc.getBoolean("bomba") == true
-            binding.tvPumpStatus.text = getString(R.string.pump_status_prefix) +
+            binding.tvPumpStatus.text = getString(
+                R.string.pump_status,
                 getString(if (regando) R.string.pump_status_on else R.string.pump_status_off)
+            )
 
             val online = doc.getBoolean("online") == true
             binding.chipDeviceStatus.setText(if (online) R.string.device_online else R.string.device_offline)
@@ -148,7 +150,7 @@ class AdminActivity : AppCompatActivity() {
     private fun setupToolbar() {
         binding.toolbarMonitoreo.setOnMenuItemClickListener { menuItem ->
             if (menuItem.itemId == R.id.action_logout) {
-                Sesion.cerrar(this)
+                Sesion.cerrar(this, R.string.sesion_cerrada)
                 true
             } else {
                 false
@@ -207,6 +209,6 @@ class AdminActivity : AppCompatActivity() {
             humidity > 85 -> getString(R.string.plant_status_saturada)
             else -> getString(R.string.plant_status_optima)
         }
-        binding.tvPlantStatus.text = "${getString(R.string.plant_status_prefix)}$statusText"
+        binding.tvPlantStatus.text = getString(R.string.plant_status, statusText)
     }
 }

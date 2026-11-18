@@ -3,6 +3,8 @@
 App Android (Kotlin + XML + ViewBinding, minSdk 29, targetSdk 35), paquete `cl.inacap.riegoiot`.
 Usa **Firebase Authentication** (correo y contraseña) y **Cloud Firestore**. El acceso se controla por rol.
 
+Para la defensa, `GUIA_DEFENSA.md` explica cada indicador de la rúbrica con el archivo y la línea donde está implementado.
+
 ## Qué cambió respecto a la versión MQTT
 - Se eliminó MQTT: `MqttManager`, broker Mosquitto, certificados propios y cliente HiveMQ.
 - El login usa Firebase Auth. El rol se lee desde `usuarios/{uid}.rol` en el servidor.
@@ -103,6 +105,8 @@ Probado el 17-11-2026 en el emulador Android 15 (API 35), con el proyecto Fireba
 | 19 | Modo oscuro | Fondo nocturno, textos legibles en login y monitoreo | ✅ |
 | 20 | Login de observador | Abre "Monitoreo (solo lectura)" sin botón "Configuración y Control" ni sección de solicitudes | ✅ |
 | 21 | Observador intenta leer `solicitudes` / `comandos` / `acciones` | Denegado por las reglas | ✅ (Rules Playground y `rules-test/`) |
+| 22 | Iniciar sesión con cualquier rol | Aviso "Sesión iniciada como Administrador / Usuario / Observador" | ✅ |
+| 23 | Cerrar sesión con el ícono de salida | Aviso "Sesión cerrada" y vuelve al login | ✅ |
 
 ## 7. Guion de demo (5 min)
 1. **Login admin** (`admin@riego.cl`) → Monitoreo: chip de conexión y "Sin datos" de la estación.

@@ -2,6 +2,8 @@ package cl.inacap.riegoiot
 
 import android.app.Activity
 import android.content.Intent
+import android.widget.Toast
+import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.google.firebase.auth.FirebaseAuth
@@ -29,8 +31,11 @@ object Sesion {
         return rolDeApp(doc.getString("rol"))
     }
 
-    fun cerrar(activity: Activity) {
+    /** Cierra la sesion y vuelve al login. [mensaje]: aviso breve para el usuario (opcional). */
+    fun cerrar(activity: Activity, @StringRes mensaje: Int? = null) {
         FirebaseAuth.getInstance().signOut()
+        // applicationContext: el Toast sigue visible aunque esta pantalla se cierre
+        mensaje?.let { Toast.makeText(activity.applicationContext, it, Toast.LENGTH_SHORT).show() }
         activity.startActivity(
             Intent(activity, LoginActivity::class.java)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
@@ -44,16 +49,16 @@ object Sesion {
      */
     fun exigirRol(activity: AppCompatActivity, vararg permitidos: String, alConfirmar: (String) -> Unit = {}) {
         if (FirebaseAuth.getInstance().currentUser == null) {
-            cerrar(activity)
+            cerrar(activity, R.string.acceso_denegado)
             return
         }
         activity.lifecycleScope.launch {
             val rol = try {
                 leerRol()
             } catch (e: Exception) {
-                null
+                return@launch cerrar(activity, mensajeError(e)) // sin rol confirmado no hay acceso
             }
-            if (rol == null || rol !in permitidos) cerrar(activity) else alConfirmar(rol)
+            if (rol == null || rol !in permitidos) cerrar(activity, R.string.acceso_denegado) else alConfirmar(rol)
         }
     }
 }
