@@ -101,8 +101,8 @@ Probado el 17-11-2026 en el emulador Android 15 (API 35), con el proyecto Fireba
 | 17 | Admin revisa solicitudes | Ve las 2 solicitudes, una vez cada una (sin duplicados) | ✅ |
 | 18 | Usuario intenta leer `solicitudes` / `estacion` | Denegado por las reglas | ✅ (Rules Playground, fase 3) |
 | 19 | Modo oscuro | Fondo nocturno, textos legibles en login y monitoreo | ✅ |
-| 20 | Login de observador | Abre "Monitoreo (solo lectura)" sin botón "Configuración y Control" ni sección de solicitudes | ⏳ pendiente |
-| 21 | Observador intenta leer `solicitudes` / `comandos` / `acciones` | Denegado por las reglas | ⏳ pendiente (Rules Playground) |
+| 20 | Login de observador | Abre "Monitoreo (solo lectura)" sin botón "Configuración y Control" ni sección de solicitudes | ✅ |
+| 21 | Observador intenta leer `solicitudes` / `comandos` / `acciones` | Denegado por las reglas | ✅ (Rules Playground y `rules-test/`) |
 
 ## 7. Guion de demo (5 min)
 1. **Login admin** (`admin@riego.cl`) → Monitoreo: chip de conexión y "Sin datos" de la estación.
