@@ -19,7 +19,6 @@ Proyecto de *Aplicaciones Móviles para IoT* (INACAP), hecho en Kotlin + XML + V
 ## Documentación
 
 - **[LEEME_U3.md](LEEME_U3.md):** configuración de Firebase, cuentas de prueba, modelo de datos, reglas, seguridad (ISO 27002), pruebas y guion de demo.
-- **[GUIA_DEFENSA.md](GUIA_DEFENSA.md):** cada indicador de la rúbrica con el archivo y la línea donde está implementado.
 
 ## Ejecutar
 

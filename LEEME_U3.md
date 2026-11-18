@@ -3,15 +3,13 @@
 App Android (Kotlin + XML + ViewBinding, minSdk 29, targetSdk 35), paquete `cl.inacap.riegoiot`.
 Usa **Firebase Authentication** (correo y contraseña) y **Cloud Firestore**. El acceso se controla por rol.
 
-Para la defensa, `GUIA_DEFENSA.md` explica cada indicador de la rúbrica con el archivo y la línea donde está implementado.
-
-## Qué cambió respecto a la versión MQTT
-- Se eliminó MQTT: `MqttManager`, broker Mosquitto, certificados propios y cliente HiveMQ.
-- El login usa Firebase Auth. El rol se lee desde `usuarios/{uid}.rol` en el servidor.
-- Los datos viven en Firestore y las reglas de seguridad las aplica el servidor (`firestore.rules`).
-- El historial de acciones pasó de `actions.txt` (local) a la colección `acciones`.
-- Nueva pantalla de usuario: formulario "Solicitud de riego".
-- Se mantienen `Protocolo.kt` (validación de rangos) y el bloqueo de login tras 5 intentos.
+## Funcionalidades
+- Login con correo y contraseña, validación de formato y bloqueo tras 5 intentos fallidos.
+- El rol se lee desde `usuarios/{uid}.rol` en el servidor y decide la pantalla: administrador, usuario u observador.
+- Administrador: monitoreo en vivo de la estación, comandos ("Regar ahora", configuración), historial de acciones y solicitudes de los usuarios.
+- Usuario: formulario "Solicitud de riego".
+- Observador: monitoreo de solo lectura.
+- Reglas de seguridad aplicadas por el servidor (`firestore.rules`) y funcionamiento sin conexión con sincronización al reconectar.
 
 ## 1. Configurar Firebase (consola)
 1. Crear un proyecto en [console.firebase.google.com](https://console.firebase.google.com) y registrar la app Android `cl.inacap.riegoiot`.
@@ -29,7 +27,7 @@ Para la defensa, `GUIA_DEFENSA.md` explica cada indicador de la rúbrica con el 
 | `admin@riego.cl` | `admin` | Monitorea la estación, envía comandos, ve solicitudes e historial |
 | `usuario@riego.cl` | `usuario` | Solo envía solicitudes de riego (no lee datos) |
 | `observador@riego.cl` | `observador` | Solo ve el monitoreo de la estación |
-| `estacion@riego.cl` | `estacion` | Cuenta del Arduino: escribe el estado y lee comandos (no entra a la app) |
+| `estacion@riego.cl` | `estacion` | Cuenta del dispositivo de la estación: escribe el estado y lee comandos (no entra a la app) |
 
 Las contraseñas no se publican en el repositorio. Se entregan aparte.
 
@@ -63,7 +61,7 @@ Están en `firestore.rules`. En resumen:
   firebase emulators:exec --only firestore "npm test"
   ```
   Publicar las reglas: `firebase login` y luego `firebase deploy --only firestore:rules` (proyecto en `.firebaserc`).
-- Se probaron en el Rules Playground de la consola (fase 3): el usuario no lee `solicitudes` ni `estacion`, pero sí crea su solicitud y lee su propio documento.
+- Se probaron en el Rules Playground de la consola: el usuario no lee `solicitudes` ni `estacion`, pero sí crea su solicitud y lee su propio documento.
 
 ## 5. Seguridad (ISO 27002:2022)
 | Control | Cómo se aplica |
@@ -77,7 +75,7 @@ Están en `firestore.rules`. En resumen:
 | 8.15 Registro | Colección `acciones` con quién, qué y cuándo (hora del servidor) |
 | 8.16 Monitoreo | Chip de conexión (Wi-Fi / Datos / Sin conexión) y estado en línea de la estación |
 
-**Pendiente conocido:** la Fase 8 (Arduino con Firestore) es opcional y no está hecha. El sketch `arduino/riego_u3/` sigue usando MQTT, así que el monitoreo muestra "Sin datos" hasta que la estación escriba `estacion/riego01`.
+**Estación física:** no hay un dispositivo (Arduino) conectado. El monitoreo muestra "Sin datos" hasta que alguien escriba `estacion/riego01`; para la demo ese documento se crea a mano en la consola (ver sección 7). Los comandos del administrador quedan guardados en `comandos` con estado `pendiente`.
 
 ## 6. Pruebas
 Probado el 17-11-2026 en el emulador Android 15 (API 35), con el proyecto Firebase real. Tests locales: `./gradlew test` en verde.
@@ -101,15 +99,18 @@ Probado el 17-11-2026 en el emulador Android 15 (API 35), con el proyecto Fireba
 | 15 | Usuario: enviar solicitud válida | "Solicitud enviada" y el formulario se limpia | ✅ |
 | 16 | Usuario: enviar en modo avión | "Sin conexión: se enviará al reconectar"; al volver la red, "Solicitud enviada" | ✅ |
 | 17 | Admin revisa solicitudes | Ve las 2 solicitudes, una vez cada una (sin duplicados) | ✅ |
-| 18 | Usuario intenta leer `solicitudes` / `estacion` | Denegado por las reglas | ✅ (Rules Playground, fase 3) |
+| 18 | Usuario intenta leer `solicitudes` / `estacion` | Denegado por las reglas | ✅ (Rules Playground) |
 | 19 | Modo oscuro | Fondo nocturno, textos legibles en login y monitoreo | ✅ |
 | 20 | Login de observador | Abre "Monitoreo (solo lectura)" sin botón "Configuración y Control" ni sección de solicitudes | ✅ |
 | 21 | Observador intenta leer `solicitudes` / `comandos` / `acciones` | Denegado por las reglas | ✅ (Rules Playground y `rules-test/`) |
 | 22 | Iniciar sesión con cualquier rol | Aviso "Sesión iniciada como Administrador / Usuario / Observador" | ✅ |
 | 23 | Cerrar sesión con el ícono de salida | Aviso "Sesión cerrada" y vuelve al login | ✅ |
+| 24 | Monitoreo con datos simulados de la estación | Muestra 25 %, "Seca", "Detenida", "En línea" y la notificación "Planta seca" | ✅ |
 
 ## 7. Guion de demo (5 min)
-1. **Login admin** (`admin@riego.cl`) → Monitoreo: chip de conexión y "Sin datos" de la estación.
+**Datos simulados de la estación:** como no hay Arduino, antes de la demo crear en la consola (Firestore → Iniciar colección `estacion`, documento `riego01`) los campos `humedad: 25`, `umbral: 30`, `duracion: 10` (number), `bomba: false`, `auto: true`, `online: true` (boolean) y `actualizado` (timestamp). Al cambiar `humedad` en la consola, la app se actualiza en vivo.
+
+1. **Login admin** (`admin@riego.cl`) → Monitoreo: chip de conexión, humedad 25 %, planta "Seca" y la alerta "Planta seca".
 2. **Configuración y Control** → "Regar ahora" → confirmar. Cambiar perfil a Tropical y guardar. Mostrar el historial y, en la consola de Firebase, los documentos nuevos en `comandos` (estado `pendiente`) y `acciones`.
 3. Volver a Monitoreo → sección **Solicitudes de usuarios**. Cerrar sesión.
 4. **Login usuario** (`usuario@riego.cl`) → enviar el formulario vacío (errores) y luego una solicitud válida.
