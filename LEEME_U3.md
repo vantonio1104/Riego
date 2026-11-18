@@ -15,10 +15,10 @@ Usa **Firebase Authentication** (correo y contraseña) y **Cloud Firestore**. El
 1. Crear un proyecto en [console.firebase.google.com](https://console.firebase.google.com) y registrar la app Android `cl.inacap.riegoiot`.
 2. Descargar `google-services.json` y copiarlo en `app/`. **No se sube a git** (está en `.gitignore`).
 3. Authentication → Método de acceso → activar **Correo electrónico/contraseña**.
-4. Crear las 3 cuentas de la tabla de abajo (Authentication → Usuarios → Agregar usuario).
+4. Crear las 4 cuentas de la tabla de abajo (Authentication → Usuarios → Agregar usuario).
 5. Firestore Database → Crear base de datos.
 6. Crear un documento `usuarios/{uid}` por cuenta, con el UID que muestra Authentication:
-   `nombre` (texto), `correo` (texto), `rol` (`admin`, `usuario` o `estacion`).
+   `nombre` (texto), `correo` (texto), `rol` (`admin`, `usuario`, `observador` o `estacion`).
 7. Firestore → Reglas → pegar el contenido de `firestore.rules` y **Publicar**.
 
 ### Cuentas de prueba
@@ -26,6 +26,7 @@ Usa **Firebase Authentication** (correo y contraseña) y **Cloud Firestore**. El
 |---|---|---|
 | `admin@riego.cl` | `admin` | Monitorea la estación, envía comandos, ve solicitudes e historial |
 | `usuario@riego.cl` | `usuario` | Solo envía solicitudes de riego (no lee datos) |
+| `observador@riego.cl` | `observador` | Solo ve el monitoreo de la estación |
 | `estacion@riego.cl` | `estacion` | Cuenta del Arduino: escribe el estado y lee comandos (no entra a la app) |
 
 Las contraseñas no se publican en el repositorio. Se entregan aparte.
@@ -33,7 +34,7 @@ Las contraseñas no se publican en el repositorio. Se entregan aparte.
 ## 2. Compilar y ejecutar
 ```
 ./gradlew assembleDebug     # APK en app/build/outputs/apk/debug/
-./gradlew test              # tests locales: Protocolo, Solicitud y Conexion
+./gradlew test              # tests locales: Protocolo, Solicitud, Conexion y Sesion
 ```
 Abrir el proyecto en Android Studio y ejecutar en un emulador o celular con internet.
 
@@ -41,7 +42,7 @@ Abrir el proyecto en Android Studio y ejecutar en un emulador o celular con inte
 | Colección | Escribe | Lee | Campos |
 |---|---|---|---|
 | `usuarios/{uid}` | nadie desde la app (consola) | el propio usuario, admin | `nombre, correo, rol` |
-| `estacion/riego01` | estacion | admin | `humedad, bomba, umbral, duracion, auto, online, actualizado` |
+| `estacion/riego01` | estacion | admin, observador | `humedad, bomba, umbral, duracion, auto, online, actualizado` |
 | `comandos/{id}` | admin | estacion, admin | `tipo (REGAR/CFG), umbral, duracion, auto, creadoPor, fecha, estado` |
 | `solicitudes/{id}` | usuario, admin | solo admin | `uid, nombre, sector, comentario, prioridad, fecha` |
 | `acciones/{id}` | admin | admin | `uid, accion, fecha` |
@@ -51,14 +52,22 @@ Están en `firestore.rules`. En resumen:
 - Sin sesión no se lee ni se escribe nada.
 - El rol se toma de `usuarios/{uid}`, que solo se edita desde la consola: nadie puede subirse el rol desde la app.
 - `usuario` solo puede **crear** solicitudes con su propio `uid` y un comentario de 200 caracteres o menos. No puede leer `solicitudes` ni `estacion`.
+- `observador` es un rol de solo lectura (mínimo privilegio): solo puede leer `estacion` y su propio documento de `usuarios`. No lee `solicitudes`, `comandos` ni `acciones`, y no escribe nada.
 - `admin` solo puede crear comandos de tipo `REGAR` o `CFG`. Nadie puede borrar comandos, solicitudes ni acciones.
+- Tests automáticos en `rules-test/` con el emulador de Firestore (no toca el proyecto real). Requieren Node y Java:
+  ```
+  npm install -g firebase-tools
+  cd rules-test && npm install
+  firebase emulators:exec --only firestore "npm test"
+  ```
+  Publicar las reglas: `firebase login` y luego `firebase deploy --only firestore:rules` (proyecto en `.firebaserc`).
 - Se probaron en el Rules Playground de la consola (fase 3): el usuario no lee `solicitudes` ni `estacion`, pero sí crea su solicitud y lee su propio documento.
 
 ## 5. Seguridad (ISO 27002:2022)
 | Control | Cómo se aplica |
 |---|---|
 | 8.5 Autenticación segura | Firebase Auth con correo y contraseña (mínimo 6 caracteres). Bloqueo de 30 s tras 5 intentos fallidos, además de la protección propia de Firebase ("Demasiados intentos") |
-| 8.2 / 8.3 Privilegios y acceso | Reglas de Firestore por rol, aplicadas en el servidor. La app lee el rol desde el servidor: sin rol confirmado (sin red, sin documento o rol desconocido) cierra la sesión y no da acceso. Cada pantalla protegida revisa el rol al abrirse |
+| 8.2 / 8.3 Privilegios y acceso | Reglas de Firestore por rol, aplicadas en el servidor. La app lee el rol desde el servidor: sin rol confirmado (sin red, sin documento o rol desconocido) cierra la sesión y no da acceso. Cada pantalla protegida revisa el rol al abrirse. Mínimo privilegio: el rol `observador` solo ve el monitoreo; la app le oculta el control y las solicitudes, y las reglas se los niegan igual |
 | 8.12 Fuga de datos | `google-services.json`, `local.properties` y contraseñas fuera de git. El usuario no puede leer datos de otros |
 | 8.24 Criptografía | Toda la comunicación con Firebase va por HTTPS/TLS. Las contraseñas las guarda Firebase con hash; la app no las almacena |
 | 8.14 Disponibilidad | Caché offline de Firestore: sin red, las escrituras quedan en cola y se suben al reconectar, sin duplicarse (id de documento fijo) |
@@ -92,6 +101,8 @@ Probado el 17-11-2026 en el emulador Android 15 (API 35), con el proyecto Fireba
 | 17 | Admin revisa solicitudes | Ve las 2 solicitudes, una vez cada una (sin duplicados) | ✅ |
 | 18 | Usuario intenta leer `solicitudes` / `estacion` | Denegado por las reglas | ✅ (Rules Playground, fase 3) |
 | 19 | Modo oscuro | Fondo nocturno, textos legibles en login y monitoreo | ✅ |
+| 20 | Login de observador | Abre "Monitoreo (solo lectura)" sin botón "Configuración y Control" ni sección de solicitudes | ⏳ pendiente |
+| 21 | Observador intenta leer `solicitudes` / `comandos` / `acciones` | Denegado por las reglas | ⏳ pendiente (Rules Playground) |
 
 ## 7. Guion de demo (5 min)
 1. **Login admin** (`admin@riego.cl`) → Monitoreo: chip de conexión y "Sin datos" de la estación.
@@ -100,4 +111,5 @@ Probado el 17-11-2026 en el emulador Android 15 (API 35), con el proyecto Fireba
 4. **Login usuario** (`usuario@riego.cl`) → enviar el formulario vacío (errores) y luego una solicitud válida.
 5. **Lectura bloqueada:** en la consola, Firestore → Reglas → Rules Playground, simular `get` en `/solicitudes/x` con el UID del usuario → "Denegado".
 6. **Modo avión:** activar, enviar otra solicitud ("Sin conexión: se enviará al reconectar"), desactivar y mostrar que aparece una sola vez en la consola y en la lista del admin.
-7. (Opcional) Cambiar el teléfono a modo oscuro para mostrar el fondo nocturno.
+7. (Opcional) **Login observador** (`observador@riego.cl`): solo lectura. Ve el monitoreo, pero no el botón de control ni las solicitudes.
+8. (Opcional) Cambiar el teléfono a modo oscuro para mostrar el fondo nocturno.

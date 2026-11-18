@@ -6,7 +6,7 @@ service cloud.firestore {
 
     match /usuarios/{uid}   { allow read: if request.auth != null && (request.auth.uid == uid || es('admin'));
                               allow write: if false; }
-    match /estacion/{id}    { allow read: if es('admin'); allow write: if es('estacion'); }
+    match /estacion/{id}    { allow read: if es('admin') || es('observador'); allow write: if es('estacion'); }
     match /comandos/{id}    { allow create: if es('admin') && request.resource.data.tipo in ['REGAR','CFG'];
                               allow read, update: if es('estacion') || es('admin');
                               allow delete: if false; }

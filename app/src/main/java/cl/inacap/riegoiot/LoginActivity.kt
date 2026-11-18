@@ -121,7 +121,7 @@ class LoginActivity : AppCompatActivity() {
             return
         }
         val destino = when (rol) {
-            Sesion.ADMIN -> AdminActivity::class.java
+            Sesion.ADMIN, Sesion.OBSERVADOR -> AdminActivity::class.java
             Sesion.USUARIO -> UsuarioActivity::class.java
             else -> null
         }

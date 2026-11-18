@@ -1,0 +1,13 @@
+{
+  "name": "riego-rules-test",
+  "private": true,
+  "type": "module",
+  "description": "Tests de firestore.rules con el emulador de Firestore",
+  "scripts": {
+    "test": "node --test"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "6.0.0",
+    "firebase": "13.4.0"
+  }
+}

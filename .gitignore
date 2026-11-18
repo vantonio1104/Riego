@@ -15,3 +15,7 @@ app/google-services.json
 # Claves privadas y contrasenas del broker (ISO 27002 8.12)
 broker/certs/*.key
 broker/passwd*
+
+# Tests de reglas (Node) y logs del emulador de Firebase
+node_modules/
+*-debug.log

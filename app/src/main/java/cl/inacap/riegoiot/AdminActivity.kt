@@ -52,13 +52,22 @@ class AdminActivity : AppCompatActivity() {
         binding = ActivityMonitoreoBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        Sesion.exigirRol(this, Sesion.ADMIN)
+        // Control y solicitudes vienen ocultos en el layout: se activan solo con rol admin confirmado
+        Sesion.exigirRol(this, Sesion.ADMIN, Sesion.OBSERVADOR) { rol ->
+            if (rol == Sesion.ADMIN) {
+                setupAdminButton()
+                binding.tvSolicitudesTitulo.isVisible = true
+                binding.rvSolicitudes.isVisible = true
+                observarSolicitudes()
+            } else {
+                // Observador: solo lectura, sin listener de solicitudes (las reglas se lo niegan)
+                binding.toolbarMonitoreo.setTitle(R.string.monitoring_title_readonly)
+            }
+        }
 
         setupToolbar()
-        setupAdminButton()
         setupNotifications()
         observarEstacion()
-        observarSolicitudes()
     }
 
     /** Mientras no llegue estacion/riego01 la pantalla muestra "Sin datos" (sin valores inventados). */

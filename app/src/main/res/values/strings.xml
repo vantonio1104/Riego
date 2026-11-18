@@ -36,6 +36,7 @@
 
     <!-- Monitoreo -->
     <string name="monitoring_title">Monitoreo de Riego</string>
+    <string name="monitoring_title_readonly">Monitoreo (solo lectura)</string>
     <string name="logout">Cerrar sesión</string>
     <string name="humidity_unit">%1$d%%</string>
     <string name="plant_status_prefix">"Estado planta: "</string>
